@@ -4,6 +4,10 @@ from flask_caching import Cache
 import json
 import os
 
+# Author: Harsha Gangavarapu
+# Description: Logic for Chata AI search API service application
+
+
 app = Flask(__name__)
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 3600})
