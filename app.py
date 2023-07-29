@@ -29,6 +29,11 @@ def swagger():
         return jsonify(json.load(f))
 
 
+@app.route('/health')
+def health():
+    return jsonify({"Status": "Healthy"})
+
+
 @app.before_request
 def check_file_modification():
     try:
