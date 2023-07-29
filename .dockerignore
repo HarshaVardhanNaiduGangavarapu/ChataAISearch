@@ -1,0 +1,11 @@
+# Ignore common editor and system files
+.idea/
+venv/
+__pycache__/
+
+# Ignore version control files
+.gitignore
+
+# Ignore Docker-specific files (optional)
+Dockerfile
+.dockerignore
