@@ -31,49 +31,59 @@ def swagger():
 
 @app.before_request
 def check_file_modification():
-    filename = 'resources/king-i-150.txt'
-    current_mtime = get_file_mtime(filename)
-    cached_mtime = cache.get(f'{filename}_mtime')
+    try:
+        filename = 'resources/king-i-150.txt'
+        current_mtime = get_file_mtime(filename)
+        cached_mtime = cache.get(f'{filename}_mtime')
 
-    if cached_mtime is None or current_mtime != cached_mtime:
-        cache.delete_memoized(load_text_file, filename)
-        cache.set(f'{filename}_mtime', current_mtime)
+        if cached_mtime is None or current_mtime != cached_mtime:
+            cache.delete_memoized(load_text_file, filename)
+            cache.set(f'{filename}_mtime', current_mtime)
+    except Exception as ex:
+        return jsonify({"Error": "Please contact administrator."}), 500
 
 
 @app.route('/search', methods=['POST'])
 def search():
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        if len(data) > 1:
+            return jsonify({"Bad Request": "Request body should contain only 'str' as key."}), 400
+        elif data.get('str') is None:
+            return jsonify({"Bad Request": "Request body should contain 'str' as key."}), 400
+        # verify JSON data body validity
+        if data is not None:
+            filename = 'resources/king-i-150.txt'
+            content, mtime = load_text_file(filename)
+            search_str = data.get('str')
+            if search_str is not None:
+                start_indices, end_indices, line_numbers, sentences = find_search_match_locations(content, search_str)
+                occurences = []
+                for index in range(len(start_indices)):
+                    obj = {
+                        "line": line_numbers[index],
+                        "start": start_indices[index],
+                        "end": end_indices[index],
+                        "in_sentence": sentences[index]
+                    }
+                    occurences.append(obj)
 
-    # verify JSON data body validity
-    if data is not None:
-        filename = 'resources/king-i-150.txt'
-        content, mtime = load_text_file(filename)
-        search_str = data.get('str')
-        if search_str is not None:
-            start_indices, end_indices, line_numbers, sentences = find_search_match_locations(content, search_str)
-            occurences = []
-            for index in range(len(start_indices)):
-                obj = {
-                    "line": line_numbers[index],
-                    "start": start_indices[index],
-                    "end": end_indices[index],
-                    "in_sentence": sentences[index]
+                response_data = {
+                    "query_text": search_str,
+                    "number_of_occurrences": len(start_indices),
+                    "occurences": occurences
                 }
-                occurences.append(obj)
 
-            response_data = {
-                "query_text": search_str,
-                "number_of_occurrences": len(start_indices),
-                "occurences": occurences
-            }
-
-            return jsonify(response_data)
+                return jsonify(response_data)
+            else:
+                return jsonify({"Invalid key. Please use 'str' as JSON Key."}), 400
         else:
-            return "Invalid key. Please use 'str' as JSON Key", 400
-    else:
-        return "Invalid data. Please use JSON data format", 400
+            return jsonify({"Invalid data. Please use JSON data format."}), 400
+    except Exception as ex:
+        return jsonify({"Error": "Please contact administrator."}), 500
 
 
+@cache.memoize()
 def find_search_match_locations(text, search_string):
     final_start_indices = []
     final_end_indices = []
