@@ -1,0 +1,24 @@
+{
+    "number_of_occurrences": 3,
+    "occurences": [
+        {
+            "end": 23,
+            "in_sentence": "Now is the time to rise from the dark and desolate\nvalley of segregation to the sunlit path of racial justice.",
+            "line": 45,
+            "start": 17
+        },
+        {
+            "end": 68,
+            "in_sentence": "Now is\nthe time to open the doors of opportunity to all of God's children.",
+            "line": 46,
+            "start": 62
+        },
+        {
+            "end": 7,
+            "in_sentence": "Now is the time to lift our nation from the quicksands of racial\ninjustice to the solid rock of brotherhood.",
+            "line": 48,
+            "start": 1
+        }
+    ],
+    "query_text": "Now is"
+}

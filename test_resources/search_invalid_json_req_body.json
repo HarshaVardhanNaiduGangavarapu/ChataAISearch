@@ -1,0 +1,3 @@
+{
+    "Bad Request": "Invalid JSON request body. Please use JSON data format with 'str' as key and <search_text> as value."
+}

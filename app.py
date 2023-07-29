@@ -1,11 +1,12 @@
 from flask_swagger_ui import get_swaggerui_blueprint
+from werkzeug.exceptions import UnsupportedMediaType, BadRequest
 from flask import Flask, request, jsonify
 from flask_caching import Cache
 import json
 import os
 
 # Author: Harsha Gangavarapu
-# Description: Logic for Chata AI search API service application
+# Description: Service layer for Chata AI search API service application
 
 
 app = Flask(__name__)
@@ -35,7 +36,7 @@ def swagger():
 
 @app.route('/health')
 def health():
-    return jsonify({"Status": "Healthy"})
+    return jsonify({"status": "healthy"})
 
 
 @app.before_request
@@ -55,39 +56,43 @@ def check_file_modification():
 @app.route('/search', methods=['POST'])
 def search():
     try:
+        if request.data is None or request.data == b'':
+            return jsonify({"Bad Request": "Invalid request data. Please use JSON data format with 'str' as key "
+                                           "and <search_text> as value."}), 400
         data = request.get_json()
         if len(data) > 1:
             return jsonify({"Bad Request": "Request body should contain only 'str' as key."}), 400
         elif data.get('str') is None:
             return jsonify({"Bad Request": "Request body should contain 'str' as key."}), 400
-        # verify JSON data body validity
-        if data is not None:
-            filename = 'resources/king-i-150.txt'
-            content, mtime = load_text_file(filename)
-            search_str = data.get('str')
-            if search_str is not None:
-                start_indices, end_indices, line_numbers, sentences = find_search_match_locations(content, search_str)
-                occurences = []
-                for index in range(len(start_indices)):
-                    obj = {
-                        "line": line_numbers[index],
-                        "start": start_indices[index],
-                        "end": end_indices[index],
-                        "in_sentence": sentences[index]
-                    }
-                    occurences.append(obj)
+        elif data.get('str') == '':
+            return jsonify({"Bad Request": "Request body should contain 'str' value and cannot be empty."}), 400
 
-                response_data = {
-                    "query_text": search_str,
-                    "number_of_occurrences": len(start_indices),
-                    "occurences": occurences
-                }
+        # logic to search from the text
+        filename = 'resources/king-i-150.txt'
+        content, mtime = load_text_file(filename)
+        search_str = data.get('str')
+        start_indices, end_indices, line_numbers, sentences = find_search_match_locations(content, search_str)
+        occurrences = []
+        for index in range(len(start_indices)):
+            obj = {
+                "line": line_numbers[index],
+                "start": start_indices[index],
+                "end": end_indices[index],
+                "in_sentence": sentences[index]
+            }
+            occurrences.append(obj)
 
-                return jsonify(response_data)
-            else:
-                return jsonify({"Invalid key. Please use 'str' as JSON Key."}), 400
-        else:
-            return jsonify({"Invalid data. Please use JSON data format."}), 400
+        response_data = {
+            "query_text": search_str,
+            "number_of_occurrences": len(start_indices),
+            "occurences": occurrences
+        }
+        return jsonify(response_data)
+    except UnsupportedMediaType:
+        return jsonify({"Error": "Unsupported media type. Please use 'application/json' format."}), 415
+    except (json.JSONDecodeError, BadRequest):
+        return jsonify({"Bad Request": "Invalid JSON request body. Please use JSON data format with 'str' as key "
+                        "and <search_text> as value."}), 400
     except Exception as ex:
         return jsonify({"Error": "Please contact administrator."}), 500
 
@@ -122,7 +127,7 @@ def find_search_match_locations(text, search_string):
 
 def find_sentences(text, search_string):
     start_indices = search_kmp_algo(text, search_string)
-    end_indices = [start_index + len(search_string)-1 for start_index in start_indices]
+    end_indices = [start_index + len(search_string) - 1 for start_index in start_indices]
 
     # Find the sentences containing the word
     sentences = text.split('.')

@@ -1,0 +1,3 @@
+{
+    "Bad Request": "Request body should contain 'str' as key."
+}
