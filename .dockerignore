@@ -3,6 +3,9 @@
 venv/
 __pycache__/
 
+# ignore log files
+logs/
+
 # Ignore version control files
 .gitignore
 

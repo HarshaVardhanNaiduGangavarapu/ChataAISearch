@@ -1,21 +1,23 @@
 from flask_swagger_ui import get_swaggerui_blueprint
 from werkzeug.exceptions import UnsupportedMediaType, BadRequest
+from logging.handlers import RotatingFileHandler
+from string_constants_util import StringConstantUtil
 from flask import Flask, request, jsonify
 from flask_caching import Cache
+import logging
 import json
 import os
 
 # Author: Harsha Gangavarapu
 # Description: Service layer for Chata AI search API service application
-
-
 app = Flask(__name__)
+
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 3600})
 
 # Configure Swagger UI
-SWAGGER_URL = '/swagger'
-API_URL = '/swagger.json'
+SWAGGER_URL = StringConstantUtil.SWAGGER
+API_URL = StringConstantUtil.SWAGGER_JSON
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
@@ -23,18 +25,46 @@ swaggerui_blueprint = get_swaggerui_blueprint(
         'app_name': "Chata Search API"
     }
 )
-
 # Register Swagger
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
+# Configure logging
+app.logger.setLevel(logging.DEBUG)
 
-@app.route('/swagger.json')
+# File logging handler
+maxBytes_512MB = 512 * 1024 * 1024
+file_handler = RotatingFileHandler(StringConstantUtil.LOG_FILE_NAME_PATH, maxBytes=maxBytes_512MB, backupCount=2)
+file_handler.setLevel(logging.DEBUG)
+
+# console stream logging handler
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.DEBUG)
+
+# Formatter to log messages
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S %Z')
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Register handlers with app
+app.logger.addHandler(file_handler)
+app.logger.addHandler(stream_handler)
+
+
+# Log API requests INFO
+@app.before_request
+def log_api_req_info():
+    app.logger.info(StringConstantUtil.REQUEST_INFO, request.method, request.url)
+    if request.method == StringConstantUtil.POST:
+        app.logger.info(StringConstantUtil.REQUEST_BODY, request.data)
+
+
+@app.route(StringConstantUtil.SWAGGER_JSON)
 def swagger():
-    with open('swagger.json', 'r') as f:
+    with open(StringConstantUtil.FILE_SWAGGER_JSON, StringConstantUtil.READ_PERM) as f:
         return jsonify(json.load(f))
 
 
-@app.route('/health')
+@app.route(StringConstantUtil.HEALTH)
 def health():
     return jsonify({"status": "healthy"})
 
@@ -42,7 +72,7 @@ def health():
 @app.before_request
 def check_file_modification():
     try:
-        filename = 'resources/king-i-150.txt'
+        filename = StringConstantUtil.RESOURCES_KING_FILE
         current_mtime = get_file_mtime(filename)
         cached_mtime = cache.get(f'{filename}_mtime')
 
@@ -50,27 +80,26 @@ def check_file_modification():
             cache.delete_memoized(load_text_file, filename)
             cache.set(f'{filename}_mtime', current_mtime)
     except Exception as ex:
-        return jsonify({"Error": "Please contact administrator."}), 500
+        return jsonify({StringConstantUtil.ERROR: StringConstantUtil.CONTACT_ADMIN_MSG}), 500
 
 
-@app.route('/search', methods=['POST'])
+@app.route(StringConstantUtil.SEARCH, methods=[StringConstantUtil.POST])
 def search():
     try:
         if request.data is None or request.data == b'':
-            return jsonify({"Bad Request": "Invalid request data. Please use JSON data format with 'str' as key "
-                                           "and <search_text> as value."}), 400
+            return jsonify({StringConstantUtil.BAD_REQUEST: StringConstantUtil.INVALID_REQ_DATA_MSG}), 400
         data = request.get_json()
         if len(data) > 1:
-            return jsonify({"Bad Request": "Request body should contain only 'str' as key."}), 400
-        elif data.get('str') is None:
-            return jsonify({"Bad Request": "Request body should contain 'str' as key."}), 400
-        elif data.get('str') == '':
-            return jsonify({"Bad Request": "Request body should contain 'str' value and cannot be empty."}), 400
+            return jsonify({StringConstantUtil.BAD_REQUEST: StringConstantUtil.MULTIPLE_KEYS_MSG}), 400
+        elif data.get(StringConstantUtil.SEARCH_STR) is None:
+            return jsonify({StringConstantUtil.BAD_REQUEST: StringConstantUtil.MISSING_STR_KEY_MSG}), 400
+        elif data.get(StringConstantUtil.SEARCH_STR) == '':
+            return jsonify({StringConstantUtil.BAD_REQUEST: StringConstantUtil.MISSING_STR_VALUE_MSG}), 400
 
         # logic to search from the text
-        filename = 'resources/king-i-150.txt'
+        filename = StringConstantUtil.RESOURCES_KING_FILE
         content, mtime = load_text_file(filename)
-        search_str = data.get('str')
+        search_str = data.get(StringConstantUtil.SEARCH_STR)
         start_indices, end_indices, line_numbers, sentences = find_search_match_locations(content, search_str)
         occurrences = []
         for index in range(len(start_indices)):
@@ -89,12 +118,11 @@ def search():
         }
         return jsonify(response_data)
     except UnsupportedMediaType:
-        return jsonify({"Error": "Unsupported media type. Please use 'application/json' format."}), 415
+        return jsonify({StringConstantUtil.ERROR: StringConstantUtil.UNSUPPORTED_MEDIA_TYPE_MSG}), 415
     except (json.JSONDecodeError, BadRequest):
-        return jsonify({"Bad Request": "Invalid JSON request body. Please use JSON data format with 'str' as key "
-                        "and <search_text> as value."}), 400
+        return jsonify({StringConstantUtil.BAD_REQUEST: StringConstantUtil.INVALID_JSON_REQ_BODY}), 400
     except Exception as ex:
-        return jsonify({"Error": "Please contact administrator."}), 500
+        return jsonify({StringConstantUtil.ERROR: StringConstantUtil.CONTACT_ADMIN_MSG}), 500
 
 
 @cache.memoize()
@@ -107,7 +135,7 @@ def find_search_match_locations(text, search_string):
 
     # split the lines based on \n
     current_line_number = 1
-    lines = text.split('\n')
+    lines = text.split(StringConstantUtil.NEW_LINE)
     for line in lines:
         start_indices = search_kmp_algo(line, search_string)
         if len(start_indices) > 0:
@@ -130,7 +158,7 @@ def find_sentences(text, search_string):
     end_indices = [start_index + len(search_string) - 1 for start_index in start_indices]
 
     # Find the sentences containing the word
-    sentences = text.split('.')
+    sentences = text.split(StringConstantUtil.FULL_STOP)
     matching_sentences = []
 
     for i in range(len(start_indices)):
@@ -138,7 +166,7 @@ def find_sentences(text, search_string):
         for sentence in sentences:
             sentence_end = sentence_start + len(sentence) - 1
             if start_indices[i] >= sentence_start and end_indices[i] <= sentence_end:
-                matching_sentences.append(sentence.strip() + '.')
+                matching_sentences.append(sentence.strip() + StringConstantUtil.FULL_STOP)
             sentence_start += len(sentence) + 1
 
     return matching_sentences
@@ -150,7 +178,7 @@ def find_string_in_text(text, search_string):
     end_indices = [start_index + len(search_string) - 1 for start_index in start_indices]
 
     # Find line numbers for each start index
-    lines = text.split('\n')
+    lines = text.split(StringConstantUtil.NEW_LINE)
     line_start = 0
     line_numbers = []
     current_line_number = 1
@@ -162,7 +190,7 @@ def find_string_in_text(text, search_string):
         line_numbers.append(current_line_number)
 
     # Find the sentences containing the word
-    sentences = text.split('.')
+    sentences = text.split(StringConstantUtil.FULL_STOP)
     matching_sentences = []
 
     for i in range(len(start_indices)):
@@ -224,7 +252,7 @@ def get_file_mtime(filename):
 @cache.memoize()
 def load_text_file(filename):
     file_modified_time = get_file_mtime(filename)
-    with open(filename, 'r') as file:
+    with open(filename, StringConstantUtil.READ_PERM) as file:
         content = file.read()
     return content, file_modified_time
 

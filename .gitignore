@@ -1,10 +1,14 @@
 # ignore .idea
 .idea
+
 # Ignore virtual environment directory
 venv/
 
 # Ignore pycache
 __pycache__/
+
+# Ignore log files
+logs/
 
 # Ignore build output directories
 build/
