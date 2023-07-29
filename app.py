@@ -1,10 +1,33 @@
+from flask_swagger_ui import get_swaggerui_blueprint
 from flask import Flask, request, jsonify
 from flask_caching import Cache
+import json
 import os
 
 app = Flask(__name__)
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT': 3600})
+
+# Configure Swagger UI
+SWAGGER_URL = '/swagger'
+API_URL = '/swagger.json'
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "Chata Search API"
+    }
+)
+
+# Register Swagger
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
+
+@app.route('/swagger.json')
+def swagger():
+    with open('swagger.json', 'r') as f:
+        return jsonify(json.load(f))
+
 
 @app.before_request
 def check_file_modification():

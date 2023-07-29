@@ -1,0 +1,70 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Chata Search API",
+        "description": "Search API Documentation",
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "schemes": ["http"],
+    "paths": {
+        "/search": {
+            "post": {
+                "summary": "Search for occurrences of a given string in a text.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "parameters": [
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "str": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "number_of_occurrences": {
+                                    "type": "integer"
+                                },
+                                "occurrences": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "end": {
+                                                "type": "integer"
+                                            },
+                                            "in_sentence": {
+                                                "type": "string"
+                                            },
+                                            "line": {
+                                                "type": "integer"
+                                            },
+                                            "start": {
+                                                "type": "integer"
+                                            }
+                                        }
+                                    }
+                                },
+                                "query_text": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
