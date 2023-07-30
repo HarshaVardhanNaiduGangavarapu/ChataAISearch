@@ -246,10 +246,13 @@ def find_lps_match(pattern):
     return match_table
 
 
+# This method returns the last modification time of the file specified by the <filename>.
 def get_file_mtime(filename):
     return os.path.getmtime(filename)
 
 
+# This method returns the large text file.The large text file be cached based on the <filename>.
+# All subsequent calls with the same <filename> will return the cached result instead of reading the file again
 @cache.memoize()
 def load_text_file(filename):
     file_modified_time = get_file_mtime(filename)
