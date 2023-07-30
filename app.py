@@ -41,6 +41,9 @@ def log_api_req_info():
 
 @app.after_request
 def after_request(response):
+    # skip swagger APIs response logging
+    if 'swagger' in request.url:
+        return response
     status_code = response.status_code
     # Log the response
     if 200 <= status_code <= 299:
@@ -56,8 +59,8 @@ def after_request(response):
 
 @app.route(StringConstantUtil.SWAGGER_JSON)
 def swagger():
-    with open(StringConstantUtil.FILE_SWAGGER_JSON, StringConstantUtil.READ_PERM) as f:
-        return jsonify(json.load(f))
+    with open(StringConstantUtil.FILE_SWAGGER_JSON, StringConstantUtil.READ_PERM) as file:
+        return jsonify(json.load(file))
 
 
 @app.route(StringConstantUtil.HEALTH)

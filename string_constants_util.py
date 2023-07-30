@@ -1,5 +1,5 @@
-# This file holds the strings constant information
-
+# Author: Harsha Gangavarapu
+# Description: This file holds the strings constant information
 class StringConstantUtil:
     READ_PERM = 'r'
     POST = 'POST'
