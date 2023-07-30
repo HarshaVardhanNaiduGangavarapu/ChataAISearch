@@ -38,7 +38,7 @@ build the Docker image using the following command:
 ```bash 
 docker build -t chata.ai:1.0 .
 ```
-Now we have build a docker image of the application using `Dockefile` present in root folder.
+Now we have build a docker image of the application using `Dockefile` which uses `requirements.txt` and `.dockerignore` present in root folder.
 You can check the image we have built using following command:
 ```bash
 docker images
@@ -83,8 +83,8 @@ You can then use Container Running Services like `Container Running Services` li
 and other respective container services to pull the image from registries and run application in a cloud environment. 
 
 ## Swagger
-The OpenAPI swagger specification is available in `swagger.json` file and and will be used to render the Swagger UI 
-at `http://127.0.0.1:5000/swagger`.
+The OpenAPI swagger specification is available in `swagger.json` file and will be used to render the Swagger UI 
+at `http://127.0.0.1:5000/swagger`. We can also have the swagger specification in `JSON` format at `http://127.0.0.1:5000/swagger.json`.
 
 ## Testing
 All the test cases for the application are available in `test_app.py` under root folder. 
@@ -95,5 +95,7 @@ The `logger` configuration is present in `log_config.py`. All logs are written t
 `chataAISearch.log` available under `logs` folder in the project.
 
 ## Future Scope
-In the future, we can add new APIs to allow users to upload large text files and store them in `HDFS`. We can also modify 
-existing APIs to take the `filename` as input for searching arbitrary strings. This will enhance the functionality and scope of the application.
+In the future, we can add new APIs to allow users to upload large text files and store them in `HDFS`. You can also modify 
+existing APIs to take the `filename` as input for searching arbitrary strings. 
+You can use `docker volumes` to mount external storage for permanent persistence of log files.
+These upgrades will further enhance the functionality and scope of the application.

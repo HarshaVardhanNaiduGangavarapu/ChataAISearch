@@ -39,6 +39,7 @@ def log_api_req_info():
         logger.info(StringConstantUtil.REQUEST_BODY, request.data)
 
 
+# Log API response INFO
 @app.after_request
 def after_request(response):
     # skip swagger APIs response logging
@@ -57,17 +58,22 @@ def after_request(response):
     return response
 
 
+# API route to handle the request for the Swagger specification.
 @app.route(StringConstantUtil.SWAGGER_JSON)
 def swagger():
     with open(StringConstantUtil.FILE_SWAGGER_JSON, StringConstantUtil.READ_PERM) as file:
         return jsonify(json.load(file))
 
 
+# API route to handle the health status of the service
 @app.route(StringConstantUtil.HEALTH)
 def health():
     return jsonify({"status": "healthy"})
 
 
+# This Method checks if the large text file `king-i-150.txt` has been modified since the last request.
+# If the file has been modified, it clears the cache for the file content and updates the
+# file's modification time in the cache.
 @app.before_request
 def check_file_modification():
     try:
@@ -83,6 +89,7 @@ def check_file_modification():
         return jsonify({StringConstantUtil.ERROR: StringConstantUtil.CONTACT_ADMIN_MSG}), 500
 
 
+# API route to handle the search of texts
 @app.route(StringConstantUtil.SEARCH, methods=[StringConstantUtil.POST])
 def search():
     try:
@@ -154,6 +161,7 @@ def find_search_match_locations(text, search_string):
     return final_start_indices, final_end_indices, final_line_numbers, final_matching_sentences
 
 
+# This method finds the sentences, which matches the search text
 def find_sentences(text, search_string):
     start_indices = search_kmp_algo(text, search_string)
     end_indices = [start_index + len(search_string) - 1 for start_index in start_indices]
@@ -173,38 +181,7 @@ def find_sentences(text, search_string):
     return matching_sentences
 
 
-def find_string_in_text(text, search_string):
-    # Use the KMP algorithm to find occurrences of search_string in the text
-    start_indices = search_kmp_algo(text, search_string)
-    end_indices = [start_index + len(search_string) - 1 for start_index in start_indices]
-
-    # Find line numbers for each start index
-    lines = text.split(StringConstantUtil.NEW_LINE)
-    line_start = 0
-    line_numbers = []
-    current_line_number = 1
-
-    for start_index in start_indices:
-        while start_index >= line_start + len(lines[current_line_number - 1]):
-            line_start += len(lines[current_line_number - 1]) + 1
-            current_line_number += 1
-        line_numbers.append(current_line_number)
-
-    # Find the sentences containing the word
-    sentences = text.split(StringConstantUtil.FULL_STOP)
-    matching_sentences = []
-
-    for i in range(len(start_indices)):
-        sentence_start = 0
-        for sentence in sentences:
-            sentence_end = sentence_start + len(sentence) - 1
-            if start_indices[i] >= sentence_start and end_indices[i] <= sentence_end:
-                matching_sentences.append(sentence.strip())
-            sentence_start += len(sentence) + 1
-
-    return start_indices, end_indices, line_numbers, matching_sentences
-
-
+# This methods implements the Knuth-Morris-Pratt (KMP) algorithm to find all the occurrences of a given
 def search_kmp_algo(text, search_str):
     text_len = len(text)
     search_str_len = len(search_str)
@@ -231,6 +208,7 @@ def search_kmp_algo(text, search_str):
     return matching_indexes
 
 
+# This method calculates and returns the Longest Prefix Suffix array
 def find_lps_match(pattern):
     # Initialize the partial match table
     match_table = [0] * len(pattern)
