@@ -80,8 +80,8 @@ pip3 install Flask-Caching
 ## Cloud Deployment
 You can use the `Docker Image` built using the `Dockerfile` and push it to Container Registries such as 
 `Docker Registry` of `Docker`, `ECR` of `AWS`, `GCR` of `GCP` and `Heroku Container Registry`.
-You can then use Container Running Services like `Container Running Services` like `ECS` of `AWS` 
-and other respective container services to pull the image from registries and run application in a cloud environment. 
+You can then use Container Running Services like `ECS` of `AWS` and other respective container services 
+to pull the image from registries and run application in a cloud environment. 
 
 ## Swagger
 The OpenAPI swagger specification is available in `swagger.json` file and will be used to render the Swagger UI 
