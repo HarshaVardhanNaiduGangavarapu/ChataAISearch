@@ -1,10 +1,9 @@
 from flask_swagger_ui import get_swaggerui_blueprint
 from werkzeug.exceptions import UnsupportedMediaType, BadRequest
-from logging.handlers import RotatingFileHandler
+from log_config import setup_logger
 from string_constants_util import StringConstantUtil
 from flask import Flask, request, jsonify
 from flask_caching import Cache
-import logging
 import json
 import os
 
@@ -28,34 +27,31 @@ swaggerui_blueprint = get_swaggerui_blueprint(
 # Register Swagger
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
-# Configure logging
-app.logger.setLevel(logging.DEBUG)
-
-# File logging handler
-maxBytes_512MB = 512 * 1024 * 1024
-file_handler = RotatingFileHandler(StringConstantUtil.LOG_FILE_NAME_PATH, maxBytes=maxBytes_512MB, backupCount=2)
-file_handler.setLevel(logging.DEBUG)
-
-# console stream logging handler
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
-
-# Formatter to log messages
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S %Z')
-file_handler.setFormatter(formatter)
-stream_handler.setFormatter(formatter)
-
-# Register handlers with app
-app.logger.addHandler(file_handler)
-app.logger.addHandler(stream_handler)
+# Setup logging
+logger = setup_logger('app.py')
 
 
 # Log API requests INFO
 @app.before_request
 def log_api_req_info():
-    app.logger.info(StringConstantUtil.REQUEST_INFO, request.method, request.url)
+    logger.info(StringConstantUtil.REQUEST_INFO, request.method, request.url)
     if request.method == StringConstantUtil.POST:
-        app.logger.info(StringConstantUtil.REQUEST_BODY, request.data)
+        logger.info(StringConstantUtil.REQUEST_BODY, request.data)
+
+
+@app.after_request
+def after_request(response):
+    status_code = response.status_code
+    # Log the response
+    if 200 <= status_code <= 299:
+        logger.info(StringConstantUtil.RESPONSE_INFO, status_code, response.get_data())
+    elif 400 <= status_code <= 499:
+        logger.warn(StringConstantUtil.RESPONSE_INFO, status_code, response.get_data())
+    elif 500 <= status_code <= 599:
+        logger.error(StringConstantUtil.RESPONSE_INFO, status_code, response.get_data())
+    else:
+        logger.critical(StringConstantUtil.RESPONSE_INFO, status_code, response.get_data())
+    return response
 
 
 @app.route(StringConstantUtil.SWAGGER_JSON)
@@ -80,6 +76,7 @@ def check_file_modification():
             cache.delete_memoized(load_text_file, filename)
             cache.set(f'{filename}_mtime', current_mtime)
     except Exception as ex:
+        logger.error(StringConstantUtil.EXCEPTION_INFO, ex)
         return jsonify({StringConstantUtil.ERROR: StringConstantUtil.CONTACT_ADMIN_MSG}), 500
 
 
@@ -122,6 +119,7 @@ def search():
     except (json.JSONDecodeError, BadRequest):
         return jsonify({StringConstantUtil.BAD_REQUEST: StringConstantUtil.INVALID_JSON_REQ_BODY}), 400
     except Exception as ex:
+        logger.error(StringConstantUtil.EXCEPTION_INFO, ex)
         return jsonify({StringConstantUtil.ERROR: StringConstantUtil.CONTACT_ADMIN_MSG}), 500
 
 

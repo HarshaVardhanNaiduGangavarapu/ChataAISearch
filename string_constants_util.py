@@ -29,5 +29,7 @@ class StringConstantUtil:
     # Logs constants
     REQUEST_INFO = 'API Request Info: %s %s'
     REQUEST_BODY = 'API Request Body Info: %s'
+    RESPONSE_INFO = 'API Response Info: %s %s'
+    EXCEPTION_INFO = 'Exception MSG: %s'
     LOG_FILE_NAME_PATH = 'logs/chataAISearch.log'
 
