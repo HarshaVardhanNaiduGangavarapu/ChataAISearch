@@ -26,7 +26,8 @@ locations and sentence in which the string can be found. The large text file `ki
 
 ## Prerequisites
 We can run this application using any of the following: Docker, PyCharm and CLI. Hence, we need Docker Desktop or PyCharm IDE along with 
-Python runtime environment and other dependencies to be installed on the machine. 
+Python runtime environment and other dependencies to be installed on the machine. You can also prefer `Postman` to test the `APIs` instead of `swagger UI`.
+If so, make sure to have `Postman` to be installed on the machine.
 
 ## Installation
 Go to the ChataAISearch (https://github.com/HarshaVardhanNaiduGangavarapu/ChataAISearch) Repository on GitHub and clone it to the machine.
