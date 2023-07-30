@@ -1,7 +1,7 @@
 # Chata.ai Search Service
 ### Author: Harshavardhan Naidu Ganagvarapu
-This project is a Python Developer Coding Exercise as part of hiring process for Chata.ai. We have used KMP string search algorithm, 
-which effectively searches an arbitrary string of length m in a large text of length n with `O(n+m)` complexity.
+This project is a Python Developer Coding Exercise as part of hiring process for Chata.ai. We have used `KMP string search` algorithm, 
+which effectively searches an `arbitrary string` of length `m` in a large text of length `n` with `O(n+m)` complexity.
 We have also use `Flask-Caching` to effectively cache the large text file `king-i-150.txt` in memory and only read the file 
 only if there are any modifications or cache-timeout. The default cache time we have used is `1 hour`.
 
@@ -12,11 +12,11 @@ only if there are any modifications or cache-timeout. The default cache time we 
     - [Docker](#docker)
     - [PyCharm](#pycharm)
     - [CLI](#cli)
-- [Cloud Deployment](#clouddeployment)
+- [Cloud Deployment](#cloud-deployment)
 - [Swagger](#swagger)
 - [Testing](#testing)
-- [Log Files](#logfiles)
-- [Future Scope](#futurescope)
+- [Log Files](#log-files)
+- [Future Scope](#future-scope)
 
 
 ## Getting Started

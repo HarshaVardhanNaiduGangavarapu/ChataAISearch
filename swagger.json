@@ -65,6 +65,25 @@
                     }
                 }
             }
+        },
+        "/health": {
+            "get": {
+                "summary": "Check the health status of the Service.",
+                "produces": ["application/json"],
+                "responses": {
+                    "200": {
+                        "description": "Health status response.",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
